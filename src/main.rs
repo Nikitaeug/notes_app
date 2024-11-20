@@ -129,8 +129,9 @@ fn view_notes() {
     loop {
         println!("What would you like to do with the note?");
         println!("1. View the file");
-        println!("2. Delete the file");
-        println!("3. Cancel");
+        println!("2. Edit the file");
+        println!("3. Delete the file");
+        println!("4. Cancel");
 
         let mut choice = String::new();
         io::stdin().read_line(&mut choice).expect("Failed to read line");
@@ -144,14 +145,85 @@ fn view_notes() {
 
         match choice {
             1 => open_file(&filename),
-            2 => {
+            2 => edit_file(&filename),
+            3 => {
                 delete_file(&filename);
                 break;
             }
-            3 => break,
+            4 => break,
             _ => println!("Invalid choice. Please enter a number between 1 and 4."),
         }
     }
+}
+
+fn edit_file(filename: &str) {
+    // Open the file in append mode
+    let mut _file = OpenOptions::new()
+        .append(true)
+        .open(filename)
+        .expect("Failed to open file");
+
+    println!("previously you have written:");
+    let contents = fs::read_to_string(filename).expect("Failed to read file");
+    println!("{}", contents);
+
+    println!("What would you like to do?");
+    println!("1. Append to the file");
+    println!("2. Overwrite the file");
+    println!("3. Cancel");
+
+    let mut choice = String::new();
+    io::stdin().read_line(&mut choice).expect("Failed to read line");
+    let choice: u32 = match choice.trim().parse() {
+        Ok(num) => num,
+        Err(_) => {
+            println!("Please enter a valid number.");
+            return;
+        }
+    };
+
+    match choice {
+        1 => append_to_file(filename),
+        2 => overwrite_file(filename),
+        3 => return,
+        _ => println!("Invalid choice. Please enter a number between 1 and 3."),
+    }
+}
+
+fn append_to_file(filename: &str) {
+    // Open the file in append mode
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open(filename)
+        .expect("Failed to open file");
+
+    println!("Enter your note:");
+    let mut note = String::new();
+    io::stdin().read_line(&mut note).expect("Failed to read note");
+
+    // Write the note to the file
+    writeln!(file, "{}", note.trim()).expect("Failed to write to file");
+
+    println!("Note added to {}!", filename);
+}
+
+
+fn overwrite_file(filename: &str) {
+    // Open the file in write mode, which will truncate the file
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(filename)
+        .expect("Failed to open file");
+
+    println!("Enter your note:");
+    let mut note = String::new();
+    io::stdin().read_line(&mut note).expect("Failed to read note");
+
+    // Write the note to the file
+    writeln!(file, "{}", note.trim()).expect("Failed to write to file");
+
+    println!("Note saved to {}!", filename);
 }
 
 fn open_file(filename: &str) {
@@ -161,8 +233,6 @@ fn open_file(filename: &str) {
         .spawn()
         .expect("Failed to open file with notes app");
 }
-
-
 fn delete_file(filename: &str) {
     fs::remove_file(filename).expect("Failed to delete file");
     println!("File {} deleted!", filename);
