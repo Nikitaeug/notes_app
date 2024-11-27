@@ -227,12 +227,12 @@ fn overwrite_file(filename: &str) {
 }
 
 fn open_file(filename: &str) {
-    // Open the file with the preferred notes app
-    Command::new("notepad")
-        .arg(filename)
-        .spawn()
-        .expect("Failed to open file with notes app");
+    // Open the file in read mode
+    let contents = fs::read_to_string(filename).expect("Failed to read file");
+    println!("File contents:");
+    println!("{}", contents);
 }
+
 fn delete_file(filename: &str) {
     fs::remove_file(filename).expect("Failed to delete file");
     println!("File {} deleted!", filename);
